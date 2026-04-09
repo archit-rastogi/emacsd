@@ -1,0 +1,147 @@
+;;; gemini-commit.el --- Gemini CLI commit messages -*- lexical-binding: t; -*-
+
+;;; my-utils.el --- Initialize org mode customizations
+
+;;; Commentary:
+;;
+
+;;; Code:
+
+;;; gemini-commit.el — drive gemini CLI from Emacs, no API key needed
+
+(defgroup gemini-commit nil
+  "Generate commit messages via the Gemini CLI (OAuth)."
+  :group 'tools)
+
+(defcustom gemini-commit-executable "gemini"
+  "Path to the gemini CLI binary."
+  :type 'string
+  :group 'gemini-commit)
+
+(defcustom gemini-commit-prompt
+  "Generate a git commit message following Conventional Commits spec \
+(feat/fix/docs/refactor/chore etc). Be concise. Return ONLY the commit \
+message, no explanation, no markdown fences."
+  "System prompt passed to gemini -p."
+  :type 'string
+  :group 'gemini-commit)
+
+(defun gemini-commit--get-diff ()
+  "Return the staged diff string, or nil if nothing is staged."
+  (let ((diff (shell-command-to-string "git diff --cached")))
+    (if (string-blank-p diff) nil diff)))
+
+(defun gemini-commit--parse-json-response (raw)
+  "Extract the .response field from gemini --output-format json output RAW."
+  (condition-case _
+      (let* ((json-object-type 'alist)
+             (parsed (json-read-from-string raw)))
+        (string-trim (alist-get 'response parsed)))
+    (error (string-trim raw))))   ; fall back to raw if not JSON
+
+(defun gemini-commit-generate ()
+  "Generate a commit message using gemini cli for currently staged changes."
+  (interactive)
+  (let ((diff (gemini-commit--get-diff)))
+    (unless diff
+      (user-error "No staged changes — run `git add` first"))
+    (message "⏳ Asking Gemini for a commit message...")
+    (let* ((proc-buf  (generate-new-buffer " *gemini-commit-stdout*"))
+           (err-buf   (generate-new-buffer " *gemini-commit-stderr*"))  ; ✅ sink for noise
+           (proc (make-process
+                  :name            "gemini-commit"
+                  :buffer          proc-buf   ; stdout only
+                  :stderr          err-buf    ; ✅ keychain warnings go here
+                  :command         (list gemini-commit-executable
+                                         "-p" gemini-commit-prompt
+                                         "-m" "gemini-2.5-flash-lite"
+                                         "--output-format" "json")
+                  :connection-type 'pipe
+                  :sentinel
+                  (lambda (p _event)
+                    (when (eq (process-status p) 'exit)
+                      (let* ((raw (with-current-buffer (process-buffer p)
+                                    (buffer-string)))
+                             (msg (gemini-commit--parse-json-response raw)))
+                        (kill-buffer (process-buffer p))
+                        (kill-buffer err-buf)          ; ✅ discard stderr buf
+                        (if (string-blank-p msg)
+                            (message "❌ Gemini returned an empty message.")
+                          (let ((commit-buf (get-buffer "COMMIT_EDITMSG")))
+                            (if commit-buf
+                                (with-current-buffer commit-buf
+                                  (goto-char (point-min))
+                                  (insert msg "\n\n"))
+                              (with-current-buffer
+                                  (get-buffer-create "*Gemini Commit Message*")
+                                (erase-buffer)
+                                (insert msg)
+                                (pop-to-buffer (current-buffer)))))
+                          (message "✅ Gemini commit message inserted."))))))))
+      (process-send-string proc diff)
+      (process-send-eof proc))))
+
+(require 'consult)
+(require 'seq)
+(defun my/consult-magit-status-only ()
+  "Switch to an open magit-status buffer using consult."
+  (interactive)
+  (let* ((magit-buffers (thread-last (buffer-list)
+                         (seq-filter (lambda (buf)
+                                       (with-current-buffer buf
+                                         (derived-mode-p 'magit-status-mode))))
+                         (mapcar #'buffer-name)
+                         )
+                        )
+         (selected (if magit-buffers
+                       (consult--read magit-buffers
+                                      :prompt "Magit Status Buffers: "
+                                      :category 'buffer
+                                      :sort t
+                                      :require-match t)
+                     )
+                   )
+         )
+    (if selected
+        (switch-to-buffer selected)
+      (user-error "No active Magit status buffers found")
+      )
+    )
+  )
+
+(defun my/unix-timestamp-to-org-date (start end &optional arg)
+  "Convert a Unix timestamp at START till END to an Org-mode date string.
+If ARG is non-nil, use local time instead of UTC."
+  (interactive "r\nP")
+  (let* ((ts-string (buffer-substring-no-properties start end))
+         (ts (string-to-number ts-string))
+         (formatted (if arg (format-time-string "<%Y-%m-%d %a %H:%M:%S %Z>" (seconds-to-time ts))
+                      ;; default: force UTC
+                      (format-time-string "<%Y-%m-%d %a %H:%M:%S %Z>" (seconds-to-time ts) 't)
+                      )))
+    (goto-char end)
+    (insert " " formatted))
+  )
+
+(defun yank-to-mark-current-or-other-frame ()
+  "Copy current region and yank to last mark position in the same window."
+  (interactive)
+  ;; set mark and copy
+  (kill-ring-save (region-beginning) (region-end))
+  ;; go to the position and yank
+  (pop-global-mark)
+  (yank)
+  )
+
+(defun my/get-api-key ()
+  "Retrieve the API key for GitHub from auth-source."
+  (let ((match (car (auth-source-search :host "api.github.com" :user "yourname"))))
+    (if match
+        (let ((secret (plist-get match :secret)))
+          (if (functionp secret)
+              (funcall secret) ;; auth-source often returns a function to evaluate
+            secret))
+      (error "Credentials not found in auth-source"))))
+
+(provide 'my-utils)
+;;; my-utils.el ends here
