@@ -693,6 +693,7 @@
   :load-path "my-utils/"
   :ensure nil  ;; Crucial: Tells use-package not to try downloading it from ELPA/MELPA
   :defer t
+  :functions (gemini-commit-generate)
   :config
   ;; Magit integration: add to the commit transient
   (with-eval-after-load 'magit
@@ -980,6 +981,7 @@
   )
 (use-package vterm
   :ensure nil
+  :functions (vterm-copy-mode-done vterm-copy-mode)
   :hook
   (vterm-mode . (lambda() (display-line-numbers-mode -1))
               )
