@@ -238,11 +238,9 @@
   (consult-customize
    consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
    ;; :preview-key "M-."
-   :preview-key '(:debounce 0.4 any))
+   :preview-key '(:debounce 0.4 any)
+   )
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -631,7 +629,7 @@
                                                                                  "-g" "lsp_server:main"
                                                                                  "-t" "halt"
                                                                                  "--" "stdio")))
-                        :activate-func (lsp-activate-on "prolog")
+                        :activation-fn (lsp-activate-on "prolog")
                         :major-modes '(prolog-mode)
                         :priority 1
                         :multi-root t
