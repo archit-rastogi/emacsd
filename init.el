@@ -72,8 +72,8 @@
             )
   )
 (use-package ai-code
+  :functions (ai-code-set-backend)
   :config
-  (declare-function ai-code-set-backend "ai-code")
   (ai-code-set-backend 'gemini)
   ;; Optional: use a narrower transient menu on smaller frames
   ;; (setq ai-code-menu-layout 'two-columns)
@@ -620,12 +620,11 @@
   ;; Point to Homebrew LLVM clangd (Apple Silicon path)
   (lsp-clients-clangd-executable "/opt/homebrew/opt/llvm/bin/clangd")
 
+  :functions (lsp-register-client make-lsp-client lsp-stdio-connection lsp-activate-on)
+
   :config
   (add-to-list 'lsp-language-id-configuration '(prolog-mode . "prolog"))
-  (declare-function lsp-register-client "lsp-mode")
-  (declare-function make-lsp-client "lsp-mode")
-  (declare-function lsp-stdio-connection "lsp-mode")
-  (declare-function lsp-activate-on "lsp-mode")
+
   ;; lsp server for prolog major mode
   (lsp-register-client (make-lsp-client
                         :new-connection (lsp-stdio-connection (lambda () (list "/Applications/SWI-Prolog.app/Contents/MacOS/swipl"
@@ -830,9 +829,8 @@
 ;;   )
 (use-package python
   :after flycheck
-
+  :functions (flycheck-add-next-checker)
   :config
-  (declare-function flycheck-add-next-checker "flycheck")
   (flycheck-add-next-checker 'python-flake8 'python-ruff)
   (flycheck-add-next-checker 'python-ruff 'python-pycompile)
   (flycheck-add-next-checker 'python-pycompile 'python-pyright)
