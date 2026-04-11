@@ -304,15 +304,18 @@
                   ("https://postgres.ai/blog/rss.xml" postgresql)
                   ("https://systemcrafters.net/rss/news.xml" pop_os)
                   ("https://sachachua.com/blog/category/emacs-news/feed" emacs)
-                  "https://www.cambridge.org/core/rss/product/id/62D9BD9A77B25D37A6212A444C0B9268"
                   ("https://towardsdatascience.com/feed" vector)
                   ("http://feeds.feedburner.com/kdnuggets-data-mining-analytics" vector)
                   ("https://endlessparentheses.com/atom.xml" emacs)
+                  ("https://adam.chlipala.net/cpdt/updates.rss" coq)
+                  ("https://serokell.io/blog.rss.xml" haskell)
+                  ("https://planet.haskell.org/rss20.xml" haskell)
+                  ("https://haskellweekly.news/newsletter.atom" haskell)
                   )
                 )
 
-  :hook
-  (elfeed-search-mode . elfeed-ai-mode)
+  ;; :hook
+  ;; (elfeed-search-mode . elfeed-ai-mode)
   )
 (use-package emacs
   :custom
@@ -421,6 +424,7 @@
 (use-package epa
   :config
   (setq epg-pinentry-mode 'loopback)
+  (setq auto-mode-alist (append '(("\\.gpg\\(~\\|\\.~[0-9]+~\\)?\\'" . epa-decrypt-file)) auto-mode-alist))
   )
 (use-package exec-path-from-shell
   :ensure t
