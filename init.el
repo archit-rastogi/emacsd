@@ -862,10 +862,11 @@
   :after flycheck
   :functions (flycheck-add-next-checker)
   :config
-  (flycheck-add-next-checker 'python-flake8 'python-ruff)
-  (flycheck-add-next-checker 'python-ruff 'python-pycompile)
-  (flycheck-add-next-checker 'python-pycompile 'python-pyright)
-  (flycheck-add-next-checker 'python-pyright 'python-mypy)
+  (flycheck-add-next-checker 'python-flake8 '(t . python-ruff))
+  (flycheck-add-next-checker 'python-ruff '(t . python-pycompile))
+  (flycheck-add-next-checker 'python-pycompile '(t . python-pyright))
+  (flycheck-add-next-checker 'python-pyright '(t . python-mypy))
+  (flycheck-add-next-checker 'python-mypy '(t . python-pylint))
   )
 
 (use-package python-black
