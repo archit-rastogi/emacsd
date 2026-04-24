@@ -322,11 +322,11 @@
   :custom
   (elfeed-search-filter "@1-year-ago +unread ")
   (elfeed-feeds '(
-                  ("https://planet.postgresql.org/rss20.xml" postgresql)
-                  ("http://rhaas.blogspot.com/feeds/posts/default" postgresql)
-                  ("https://www.cybertec-postgresql.com/en/feed/" postgresql)
-                  ("https://aws.amazon.com/blogs/database/category/database/amazon-aurora/postgresql-compatible/feed/" postgresql)
-                  ("https://postgres.ai/blog/rss.xml" postgresql)
+                  ("https://planet.postgresql.org/rss20.xml" postgresql database)
+                  ("http://rhaas.blogspot.com/feeds/posts/default" postgresql database)
+                  ("https://www.cybertec-postgresql.com/en/feed/" postgresql database)
+                  ("https://aws.amazon.com/blogs/database/category/database/amazon-aurora/postgresql-compatible/feed/" postgresql database)
+                  ("https://postgres.ai/blog/rss.xml" postgresql database)
                   ("https://systemcrafters.net/rss/news.xml" pop_os)
                   ("https://sachachua.com/blog/category/emacs-news/feed" emacs)
                   ("https://towardsdatascience.com/feed" vector)
@@ -336,6 +336,7 @@
                   ("https://serokell.io/blog.rss.xml" haskell)
                   ("https://planet.haskell.org/rss20.xml" haskell)
                   ("https://haskellweekly.news/newsletter.atom" haskell)
+                  ("https://sqlancer.github.io/feed.xml" database)
                   )
                 )
 
