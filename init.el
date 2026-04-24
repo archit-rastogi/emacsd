@@ -595,7 +595,7 @@
   :bind (("M-o" . igist-dispatch))
   :config
   (setq igist-current-user-name "archit-rastogi")
-  (setq igist-auth-marker (auth-source-pick-first-password :host "github.com" :user "archit-rastogi"))
+  (setq igist-auth-marker (auth-source-pick-first-password :host "api.github.com" :user "archit-rastogi"))
   )
 (use-package json-mode)
 (use-package kubernetes
