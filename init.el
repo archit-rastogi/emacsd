@@ -308,6 +308,10 @@
   :config
   (dap-auto-configure-mode)
   )
+(use-package dired
+  :custom
+  (dired-listing-switches "-alh --group-directories-first")
+  )
 (use-package docker
   :ensure nil
   :bind ("C-c d" . docker))
