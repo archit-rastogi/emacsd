@@ -122,6 +122,27 @@
   :hook
   ((java-mode . subword-mode))
   )
+(use-package ciao_emacs
+  :load-path (
+              "/Users/arastogi/code/ciao_emacs"
+              "/Users/arastogi/code/ciao_emacs/elisp"
+              "/Users/arastogi/code/ciao_emacs/cmds"
+              ) ;; Update to your local clone path
+  ;; :vc (:url "https://github.com/ciao-lang/ciao_emacs"
+  ;;      :rev :newest)
+  :init
+  ;; Prevent Ciao from automatically hijacking all .pl files globally
+  ;; so your SWI-Prolog projects still work.
+  (setq ciao-info-dir "/Users/arastogi/code/ciao/build/doc/")
+  (defvar ciao-library-path)
+  (setq ciao-library-path "/usr/local/ciao/1.25.0") ; Point to your source build
+
+  :commands (ciao-mode)
+  ;; :config
+  ;; ;; Setup path to the top-level you found earlier
+  ;; (defvar ciao-main-executable)
+  ;; (setq ciao-main-executable "/usr/local/ciao/1.25.0/core/library/emacs/start-ciao-toplevel")
+  )
 (use-package cider
   :ensure nil
   :hook ((clojure-mode . #'cider-mode))
