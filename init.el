@@ -133,6 +133,7 @@
   :init
   ;; Prevent Ciao from automatically hijacking all .pl files globally
   ;; so your SWI-Prolog projects still work.
+  (defvar ciao-info-dir)
   (setq ciao-info-dir "/Users/arastogi/code/ciao/build/doc/")
   (defvar ciao-library-path)
   (setq ciao-library-path "/usr/local/ciao/1.25.0") ; Point to your source build
