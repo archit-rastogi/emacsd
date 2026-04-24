@@ -52,54 +52,6 @@
 ;; set default font size
 (set-face-attribute 'default nil :height 150)
 
-(use-package aidermacs
-  :ensure nil
-  ;; :bind (("C-c b" . aidermacs-transient-menu)) ; Shortcut for the main menu
-  :config
-  ;; Use vterm for a better terminal experience (optional)
-  (setq aidermacs-backend 'vterm)
-  (setq aidermacs-program "aider")
-
-  ;; Set the default model for Ollama
-  ;; (setq aidermacs-default-model "ollama_chat/phi3:3.8b-mini-128k-instruct-q4_k_M")
-  (setq aidermacs-default-model "ollama_chat/llama3.2:3b-instruct-q4_K_M")
-  (setq aidermacs-extra-args '("--map-tokens" (number-to-string (* 24 1024))))
-
-  (add-hook 'aidermacs-before-run-backend-hook
-            (lambda ()
-              (setenv "OLLAMA_API_BASE" "http://localhost:11434")
-              )
-            )
-  )
-(use-package ai-code
-  :functions (ai-code-set-backend)
-  :config
-  (ai-code-set-backend 'gemini)
-  ;; Optional: use a narrower transient menu on smaller frames
-  ;; (setq ai-code-menu-layout 'two-columns)
-  (defvar ai-code-gemini-cli-program-switches)
-  (setq ai-code-gemini-cli-program-switches '("--no-sandbox"))
-  (setq ai-code-aider-cli-program-switches '("--no-gitignore"
-                                             "--no-show-model-warnings"
-                                             "--subtree-only"
-                                             "--no-auto-commits"
-                                             "--dark-mode"
-                                             "--verbose"
-                                             "--architect"
-                                             "--set-env"
-                                             "OLLAMA_API_BASE=http://localhost:11434"
-                                             )
-        )
-  (global-set-key (kbd "C-c a") #'ai-code-menu)
-
-  ;; Optional: Enable @ file completion in comments and AI sessions
-  ;; (ai-code-prompt-filepath-completion-mode 1)
-  ;; Optional: Ask AI to run test after code changes, for a tighter build-test loop
-  ;; (setq ai-code-auto-test-type 'ask-me)
-  ;; Optional: Turn on auto-revert buffer, so that the AI code change automatically appears in the buffer
-  (global-auto-revert-mode 1)
-  (setq auto-revert-interval 1) ;; set to 1 second for faster update
-  )
 (use-package alert
   :commands (alert)
   :init
@@ -1039,28 +991,6 @@
 (use-package vlf-setup
   :custom
   (vlf-application 'dont-ask)
-  )
-(use-package vterm
-  :ensure nil
-  :functions (vterm-copy-mode-done vterm-copy-mode)
-  :hook
-  (vterm-mode . (lambda() (display-line-numbers-mode -1))
-              )
-
-  :custom
-  (vterm-always-compile-module 't)
-
-  :config
-  (setq vterm-timer-delay nil)
-  (advice-add 'set-window-vscroll :after
-              (defun me/vterm-toggle-scroll (&rest _)
-                (when (eq major-mode 'vterm-mode)
-                  (if (> (window-end) (buffer-size))
-                      (when vterm-copy-mode (vterm-copy-mode-done nil))
-                    (vterm-copy-mode 1))
-                  )
-                )
-              )
   )
 (use-package which-key
   )
