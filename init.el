@@ -658,7 +658,7 @@
 
   ;; lsp server for prolog major mode
   (lsp-register-client (make-lsp-client
-                        :new-connection (lsp-stdio-connection (lambda () (list "/Applications/SWI-Prolog.app/Contents/MacOS/swipl"
+                        :new-connection (lsp-stdio-connection (lambda () (list "/usr/local/bin/swipl"
                                                                                  "-g" "use_module(library(lsp_server))"
                                                                                  "-g" "lsp_server:main"
                                                                                  "-t" "halt"
@@ -846,11 +846,22 @@
   (autoload 'run-prolog "prolog" "Start a Prolog sub-process." t)
   (autoload 'prolog-mode "prolog" "Major mode for editing Prolog programs." t)
   (autoload 'mercury-mode "prolog" "Major mode for editing Mercury programs." t)
-  (setq prolog-system 'swi)
+  ;; (setq prolog-system 'swi)
+  (put 'prolog-system 'safe-local-variable #'symbolp)
   (setq auto-mode-alist (append '(("\\.pl$" . prolog-mode)
                                   ("\\.m$" . mercury-mode))
                                 auto-mode-alist))
-  :hook (prolog-mode . lsp-deferred)
+  :hook
+  ((prolog-mode . (lambda ()
+                    (when (eq (bound-and-true-p prolog-system) 'ciao)
+                      (ciao-mode)
+                      )
+                    (when (eq (bound-and-true-p prolog-system) 'swi)
+                      (lsp-deferred)
+                      )
+                    )
+                )
+   )
   )
 ;; (use-package py-isort
 ;;   :hook ((before-save . py-isort-before-save))
