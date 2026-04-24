@@ -344,6 +344,11 @@
   ;; (elfeed-search-mode . elfeed-ai-mode)
   )
 (use-package emacs
+  :config
+  (when (memq window-system '(mac ns x))
+    (setq mac-command-modifier 'super)
+    )
+
   :custom
   ;; Support opening new minibuffers from inside existing minibuffers.
   (enable-recursive-minibuffers t)
