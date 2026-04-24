@@ -712,6 +712,25 @@
   :config
   (marginalia-mode)
   )
+(use-package mcp-server
+  :load-path "~/code/emacs-mcp-server/"
+  :functions (mcp-server-start-unix)
+  :config
+  (add-hook 'emacs-startup-hook #'mcp-server-start-unix)
+  (setq mcp-server-security-sensitive-file-patterns
+      '("~/.authinfo*"    ; glob: matches .authinfo, .authinfo.gpg, .authinfo.enc, ...
+        "~/.ssh/"         ; prefix: matches everything under ~/.ssh/
+        "~/.yugabyte/"    ; prefix: matches everything under ~/.yugabyte/
+        "~/my-secrets/"   ; prefix: matches everything under ~/my-secrets/
+        ".key")          ; basename: matches any file whose name contains ".key"
+      )
+  (setq mcp-server-security-dangerous-functions
+        '(delete-file shell-command require load)
+        )
+  (setq mcp-server-security-sensitive-buffer-patterns
+        '("*Messages*" "*shell*" "*my-secure-buffer*")
+        )
+  )
 (use-package mc-extras)
 (use-package menu-bar
   ;;; diable menu-bar
