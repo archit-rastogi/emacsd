@@ -52,6 +52,55 @@
 ;; set default font size
 (set-face-attribute 'default nil :height 150)
 
+(use-package agent-shell
+  :ensure t
+  :load-path "~/code/agent-shell/"
+  :ensure-system-package
+  ;; Add agent installation configs here
+  ((cursor-agent-acp . "npm install -g npm install -g @blowmage/cursor-agent-acp")
+   )
+
+  :hook
+  (agent-shell-viewport-edit-mode . (lambda() (
+                                               (orgalist-mode)
+                                               (orgtbl-mode)
+                                               )
+                                      )
+                                  )
+  :config
+  (defvar agent-shell-google-authentication)
+  (setq agent-shell-google-authentication
+        (agent-shell-google-make-authentication :login t)
+        )
+  ;; Inhibiting minor modes during file writes
+  (setopt agent-shell-write-inhibit-minor-modes '(aggressive-indent-mode)
+          )
+  (setq agent-shell-mcp-servers '(
+                                  ;; (
+                                  ;;  ((name . "yugabyte-docs")
+                                  ;;   (command . "npx")
+                                  ;;   (args . ("-y" "mcp-remote" "https://yugabyte.mcp.kapa.ai"))
+                                  ;;   )
+                                  ;;  )
+                                  )
+        )
+  (setq agent-shell-prefer-viewport-interaction t)
+  (setq agent-shell-gitignore-auto-update nil)
+
+  :defines agent-shell-mode-map
+
+  :bind
+  (:map agent-shell-mode-map
+        ("RET" . newline)
+        ("C-c C-c" . shell-maker-submit)
+        ("C-c C-k" . agent-shell-interrupt)
+        )
+  )
+
+(use-package agent-shell-org-transcript
+  :after agent-shell
+  )
+
 (use-package alert
   :commands (alert)
   :init
@@ -59,7 +108,9 @@
   )
 
 ;;; use and configure packages
-(use-package ansible)
+(use-package ansible
+  :ensure t
+  )
 (use-package ansible-doc)
 (use-package ansible-vault)
 (use-package ansi-color
@@ -448,6 +499,9 @@
   (
    (python-mode . flycheck-mode)
    )
+
+  :custom
+  (flycheck-idle-change-delay 2.0)
   )
 
 (use-package flycheck-golangci-lint
@@ -479,6 +533,7 @@
   :hook ((flymake-json-load . json-mode))
   )
 (use-package forge
+  :ensure t
   :after magit
   )
 (use-package gif-screencast
@@ -537,7 +592,9 @@
    ("M-*" . pop-tag-mark)
    )
   )
-(use-package graphviz-dot-mode)
+(use-package graphviz-dot-mode
+  )
+
 (use-package ibuffer-projectile
   )
 ;; (use-package ido
@@ -558,7 +615,36 @@
 (use-package logview
   :custom
   (datetime-timezone 'Asia/Kolkata)
-  )
+  :config
+  (setq logview-additional-level-mappings
+      (append
+       '(("Glog"
+          (error       "E" "F")
+          (warning     "W")
+          (information "I")
+          (debug       "D")
+          (trace       "V")
+          (aliases     "glog" "GLOG" "google-log" "glog-stderr")))
+       logview-additional-level-mappings)
+      )
+  ;; 2) Submode: I0423, time, thread id, file:line], then message.
+  ;;    LEVEL and IGNORED must be adjacent: use "LEVELIGNORED< ... >" (no space).
+  ;;    "NAME" uses an explicit regexp between < and >.
+  (setq logview-additional-timestamp-formats
+        '(
+          ("Ybdb" (java-pattern . "MMdd HH:mm:ss.SSSSSS")
+           (aliases "ISO 8601 Day + Month + Time + micros (a.ak MMdd HH:mm:ss.SSSSSS)"))
+          )
+        )
+  (setq logview-additional-submodes
+      (cons '("Glog" . ((format . "LEVELTIMESTAMP THREAD")
+                         (levels . "Glog")
+                         (timestamp . ("Ybdb"))
+                         (aliases . ("glog" "GLOG" "google-log" "YDB"))))
+            (and (listp logview-additional-submodes)
+                 logview-additional-submodes))
+      )
+)
 (use-package lsp-focus
   :hook
   (
@@ -659,31 +745,37 @@
   (auto-revert-buffer-list-filter
    'magit-auto-revert-repository-buffer-p)
   )
+(use-package magit-gh
+    :ensure t
+    :after magit
+    :init
+    (setq magit-gh-key ";")
+    )
 (use-package marginalia
   :ensure nil
   :after vertico
   :config
   (marginalia-mode)
   )
-(use-package mcp-server
-  :load-path "~/code/emacs-mcp-server/"
-  :functions (mcp-server-start-unix)
-  :config
-  (add-hook 'emacs-startup-hook #'mcp-server-start-unix)
-  (setq mcp-server-security-sensitive-file-patterns
-      '("~/.authinfo*"    ; glob: matches .authinfo, .authinfo.gpg, .authinfo.enc, ...
-        "~/.ssh/"         ; prefix: matches everything under ~/.ssh/
-        "~/.yugabyte/"    ; prefix: matches everything under ~/.yugabyte/
-        "~/my-secrets/"   ; prefix: matches everything under ~/my-secrets/
-        ".key")          ; basename: matches any file whose name contains ".key"
-      )
-  (setq mcp-server-security-dangerous-functions
-        '(delete-file shell-command require load)
-        )
-  (setq mcp-server-security-sensitive-buffer-patterns
-        '("*Messages*" "*shell*" "*my-secure-buffer*")
-        )
-  )
+;; (use-package mcp-server
+;;   :load-path "~/code/emacs-mcp-server/"
+;;   :functions (mcp-server-start-unix)
+;;   :config
+;;   (add-hook 'emacs-startup-hook #'mcp-server-start-unix)
+;;   (setq mcp-server-security-sensitive-file-patterns
+;;       '("~/.authinfo*"    ; glob: matches .authinfo, .authinfo.gpg, .authinfo.enc, ...
+;;         "~/.ssh/"         ; prefix: matches everything under ~/.ssh/
+;;         "~/.yugabyte/"    ; prefix: matches everything under ~/.yugabyte/
+;;         "~/my-secrets/"   ; prefix: matches everything under ~/my-secrets/
+;;         ".key")          ; basename: matches any file whose name contains ".key"
+;;       )
+;;   (setq mcp-server-security-dangerous-functions
+;;         '(delete-file shell-command require load)
+;;         )
+;;   (setq mcp-server-security-sensitive-buffer-patterns
+;;         '("*Messages*" "*shell*" "*my-secure-buffer*")
+;;         )
+;;   )
 (use-package mc-extras)
 (use-package menu-bar
   ;;; diable menu-bar
@@ -694,8 +786,8 @@
 (use-package my-utils
   :load-path "my-utils/"
   :ensure nil  ;; Crucial: Tells use-package not to try downloading it from ELPA/MELPA
-  :defer t
   :functions (gemini-commit-generate)
+  :defines git-commit-mode-map
   :config
   ;; Magit integration: add to the commit transient
   (with-eval-after-load 'magit
@@ -704,7 +796,6 @@
     )
   (with-eval-after-load 'git-commit
     ;; Keybinding in git-commit-mode buffers
-    (defvar git-commit-mode-map)
     (define-key git-commit-mode-map (kbd "C-c C-g") #'gemini-commit-generate)
     )
 
@@ -765,6 +856,30 @@
   (org-refile-use-outline-path 'file)
   (org-outline-path-complete-in-steps nil)
   (org-refile-allow-creating-parent-nodes 'confirm)
+
+  (org-directory "~/org-scratch/")
+  (org-agenda-files '(
+                      "~/org-scratch/inbox/"
+                      "~/org-scratch/professional/"
+                      "~/org-scratch/personal/"
+                      ))
+  (org-capture-templates
+   '((
+      "w" "Work Unstaged"
+      entry
+      (file "inbox/work_unstaged.org")
+      "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a"
+      )
+     (
+      "p" "Personal Unstaged"
+      entry (file "inbox/personal_unstaged.org")
+      "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a"
+      )
+     )
+   )
+
+  :bind
+  ("C-c c" . org-capture)
   )
 
 (use-package org-attach-screenshot
@@ -781,12 +896,27 @@
   (org-protocol-protocol-alist '())
   )
 
-;; (use-package org-gcal)
-(use-package org-trello
-  :defer t
-  :custom
-  (org-trello-current-prefix-keybinding "C-c o" nil (org-trello)))
+(use-package org-roam
+  :ensure t
 
+  :custom
+  (org-roam-directory "~/org-scratch/")
+
+  :bind (
+         ("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         )
+  :functions (org-roam-db-autosync-enable)
+  :config
+  (org-roam-db-autosync-enable)
+  )
+
+;; (use-package org-gcal)
+(use-package ox-hugo
+  :ensure t
+  :after ox
+  )
 (use-package package
   :ensure nil
 
@@ -801,7 +931,9 @@
   :init
   (show-paren-mode 1)
   )
-(use-package pandoc-mode)
+(use-package pandoc-mode
+  :ensure t
+  )
 (use-package pdf-tools)
 (use-package ripgrep)
 (use-package projectile
@@ -845,11 +977,12 @@
   :after flycheck
   :functions (flycheck-add-next-checker)
   :config
-  (flycheck-add-next-checker 'python-flake8 '(t . python-ruff))
-  (flycheck-add-next-checker 'python-ruff '(t . python-pycompile))
-  (flycheck-add-next-checker 'python-pycompile '(t . python-pyright))
-  (flycheck-add-next-checker 'python-pyright '(t . python-mypy))
-  (flycheck-add-next-checker 'python-mypy '(t . python-pylint))
+  (setq python-shell-completion-native-enable nil)
+  (flycheck-add-next-checker 'python-pycompile 'python-ruff)
+  ;; (flycheck-add-next-checker 'python-ruff 'python-flake8)
+  (flycheck-add-next-checker 'python-ruff '(t . python-pyright))
+  ;; (flycheck-add-next-checker 'python-pyright 'python-pylint)
+  (flycheck-add-next-checker 'python-pyright '(error . python-mypy))
   )
 
 (use-package python-black
@@ -881,6 +1014,16 @@
     (scroll-bar-mode -1))
   (when (fboundp 'horizontal-scroll-bar-mode)
     (horizontal-scroll-bar-mode -1))
+  )
+
+(use-package sideline
+  ;; :hook (flycheck-mode . sideline-mode)
+  :init
+  (setq sideline-backends-right '(sideline-flycheck))
+  )
+
+(use-package sideline-flycheck
+  ;; :hook (flycheck-mode . sideline-flycheck-setup)
   )
 
 (use-package slack
@@ -970,13 +1113,15 @@
   )
 ;; Enable vertico
 (use-package vertico
+  :ensure t
   :custom
-  ;; (vertico-scroll-margin 0) ;; Different scroll margin
+  (vertico-scroll-margin 0) ;; Different scroll margin
   ;; (vertico-count 20) ;; Show more candidates
-  (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
+  ;; (vertico-resize t) ;; Grow and shrink the Vertico minibuffer
   (vertico-cycle t) ;; Enable cycling for `vertico-next/previous'
 
   :init
+  ;; (defmacro set-local (var val) `(setq-local ,var ,val))
   (vertico-mode)
 
   :config
@@ -986,7 +1131,7 @@
   (keymap-set vertico-map "M-TAB" #'minibuffer-complete)
 
   ;; Option 2: Replace `vertico-insert' to enable TAB prefix expansion.
-  ;; (keymap-set vertico-map "TAB" #'minibuffer-complete)
+  (keymap-set vertico-map "TAB" #'minibuffer-complete)
   )
 (use-package vlf-setup
   :custom
@@ -994,13 +1139,14 @@
   )
 (use-package which-key
   )
-(use-package yaml-mode)
+(use-package yaml-mode
+  )
 (use-package yasnippet
   :config
   (yas-global-mode)
   )
 (use-package zenburn-theme
-  :ensure nil
+  :ensure t
   :config
   (load-theme 'zenburn t)
   )
@@ -1027,3 +1173,8 @@
 (load custom-file)
 
 ;;; init.el ends here
+
+;; ; @begin(76524150)@ - Do not edit these lines - added automatically!
+;; (if (file-exists-p "/Users/arastogi/code/ciao/ciao_emacs/elisp/ciao-site-file.el")
+;;   (load-file "/Users/arastogi/code/ciao/ciao_emacs/elisp/ciao-site-file.el"))
+;; ; @end(76524150)@ - End of automatically added lines.
