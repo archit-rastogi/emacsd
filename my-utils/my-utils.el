@@ -157,45 +157,88 @@ If ARG is non-nil, use local time instead of UTC."
     map)
   "Keymap for our custom completion links.")
 
-(declare-function consult-snapfile--project-root "consult-snapfile")
-(declare-function consult-snapfile--async-source "consult-snapfile")
-(defun my/agent-shell-fuzzy-insert-file()
-  "Insert a file reference using consult-snapfile fuzzy matching.
+(declare-function consult-snapfile-project-root "consult-snapfile")
+(declare-function consult-snapfile-read "consult-snapfile")
+
+(defun my/agent-shell--normalize-agent-path (path)
+  "Normalize PATH for an @ reference in agent-shell.
+Strip leading `#' markers from Consult async completion and repeated `@'
+prefixes so Embark-injected targets become a single @-prefixed reference."
+  (let ((s (string-trim (substring-no-properties path))))
+    (while (string-prefix-p "#" s)
+      (setq s (substring s 1)))
+    (while (string-prefix-p "@" s)
+      (setq s (substring s 1)))
+    (string-trim s)))
+
+(defun my/agent-shell--insert-one-agent-path (path)
+  "Insert one propertized @PATH line (PATH must be already normalized)."
+  (unless (string-empty-p path)
+    (insert (propertize (concat "@" path)
+                        'face 'link
+                        'keymap my/link-keymap
+                        'path-data path)
+            "\n")))
+
+(defun my/agent-shell-fuzzy-insert-file (&optional arg)
+  "Insert file/dir references via consult-snapfile fuzzy matching.
+
+No live file preview and no visiting the candidate on RET: consult's file
+`state' would otherwise open the file on exit and leave point there.
+
+The minibuffer shows no extra `#' separator because this command binds
+`consult-async-split-style' to nil around the picker (see manual:
+`consult-async-split-styles-alist').
+
+\\[universal-argument]: include directories as well as files (`paths' mode).
+
+When registered in `embark-multitarget-actions', Embark \\='act-all passes a
+list of targets; each is inserted without another minibuffer prompt.
+
 On cancel, inserts bare @ for manual typing."
-  (interactive)
-  (if (not (fboundp 'consult-snapfile--async-source))
-      (progn (self-insert-command 1 ?@)
-             (completion-at-point))
-    (let* ((root (consult-snapfile--project-root))
+  (interactive "P")
+  (cond
+   ;; Embark `embark-act-all' with this command on `embark-multitarget-actions':
+   ;; non-interactive call with (STRING ...) candidates.
+   ((and arg (listp arg) (stringp (car arg)))
+    (dolist (path arg)
+      (my/agent-shell--insert-one-agent-path (my/agent-shell--normalize-agent-path path))))
+   ((not (fboundp 'consult-snapfile-read))
+    (self-insert-command 1 ?@)
+    (completion-at-point))
+   (t
+    (let* ((root (expand-file-name (consult-snapfile-project-root)))
            (default-directory root)
-           (prompt (format "@ File [%s]: " (abbreviate-file-name root)))
+           (use-paths (> (prefix-numeric-value arg) 1))
+           (prompt (format "@ %s [%s]: "
+                           (if use-paths "Path" "File")
+                           (abbreviate-file-name root)))
            (selected (condition-case nil
-                         (consult--read
-                          #'consult-snapfile--async-source
-                          :prompt prompt
-                          :sort nil
-                          :require-match t
-                          :category 'file
-                          :history 'file-name-history)
+                         (let ((consult-async-split-style nil)
+                               ;; Default `consult-preview-key' is `any'; combined with
+                               ;; `consult-snapfile-read''s file state that enables preview
+                               ;; and, worse, `consult--file-state''s `return' action opens
+                               ;; the chosen file so `insert' runs there instead of agent-shell.
+                               (consult-preview-key nil))
+                           (consult-snapfile-read
+                            :cwd root
+                            :mode (if use-paths 'paths 'files)
+                            :prompt prompt
+                            :require-match t
+                            :category 'file
+                            :history 'file-name-history
+                            ;; Override default file state so RET does not open the file;
+                            ;; see `consult--with-preview-f' final `state' `return' hook.
+                            :state #'ignore))
                        (quit nil))))
       (if selected
-          (let (
-                (path (substring-no-properties selected))
-                )
-            (insert (propertize (concat "@" path)
-                                'face 'link
-                                'keymap my/link-keymap
-                                'path-data path
-                                )
-                    "\n"
-                    )
-            ;; (insert "@" (substring-no-properties selected) " ")
-            )
-        (insert "@")
-        )
-      )
-    )
+          (my/agent-shell--insert-one-agent-path
+           (my/agent-shell--normalize-agent-path selected))
+        (insert "@")))))
   )
+
+(with-eval-after-load 'embark
+  (add-to-list 'embark-multitarget-actions 'my/agent-shell-fuzzy-insert-file))
 
 (defun my/agent-shell-setup-fuzzy-completion()
   "Use consult-completion-in-region for CAPF in agent-shell."
