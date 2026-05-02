@@ -143,5 +143,64 @@ If ARG is non-nil, use local time instead of UTC."
             secret))
       (error "Credentials not found in auth-source"))))
 
+(defun my/completion-link-action (path)
+  "The action to perform when clicking or hitting RET on the link."
+  (if (file-directory-p path)
+      (dired path)
+    (find-file path))
+  )
+
+(defvar my/link-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET")
+      (lambda () (interactive) (my/completion-link-action (get-text-property (point) 'path-data))))
+    map)
+  "Keymap for our custom completion links.")
+
+(declare-function consult-snapfile--project-root "consult-snapfile")
+(declare-function consult-snapfile--async-source "consult-snapfile")
+(defun my/agent-shell-fuzzy-insert-file()
+  "Insert a file reference using consult-snapfile fuzzy matching.
+On cancel, inserts bare @ for manual typing."
+  (interactive)
+  (if (not (fboundp 'consult-snapfile--async-source))
+      (progn (self-insert-command 1 ?@)
+             (completion-at-point))
+    (let* ((root (consult-snapfile--project-root))
+           (default-directory root)
+           (prompt (format "@ File [%s]: " (abbreviate-file-name root)))
+           (selected (condition-case nil
+                         (consult--read
+                          #'consult-snapfile--async-source
+                          :prompt prompt
+                          :sort nil
+                          :require-match t
+                          :category 'file
+                          :history 'file-name-history)
+                       (quit nil))))
+      (if selected
+          (let (
+                (path (substring-no-properties selected))
+                )
+            (insert (propertize (concat "@" path)
+                                'face 'link
+                                'keymap my/link-keymap
+                                'path-data path
+                                )
+                    "\n"
+                    )
+            ;; (insert "@" (substring-no-properties selected) " ")
+            )
+        (insert "@")
+        )
+      )
+    )
+  )
+
+(defun my/agent-shell-setup-fuzzy-completion()
+  "Use consult-completion-in-region for CAPF in agent-shell."
+  (setq-local completion-in-region-function #'consult-completion-in-region)
+  )
+
 (provide 'my-utils)
 ;;; my-utils.el ends here

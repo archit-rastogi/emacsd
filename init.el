@@ -52,6 +52,10 @@
 ;; set default font size
 (set-face-attribute 'default nil :height 150)
 
+(use-package orgalist-mode
+  :ensure t
+  )
+
 (use-package agent-shell
   :ensure t
   :load-path "~/code/agent-shell/"
@@ -60,15 +64,12 @@
   ((cursor-agent-acp . "npm install -g npm install -g @blowmage/cursor-agent-acp")
    )
 
-  :hook
-  (agent-shell-viewport-edit-mode . (lambda() (
-                                               (orgalist-mode)
-                                               (orgtbl-mode)
-                                               )
-                                      )
-                                  )
+  :defines (agent-shell-google-authentication
+            agent-shell-gitignore-auto-update
+            )
+  :functions (agent-shell-google-make-authentication)
   :config
-  (defvar agent-shell-google-authentication)
+
   (setq agent-shell-google-authentication
         (agent-shell-google-make-authentication :login t)
         )
@@ -173,6 +174,7 @@
   (after-init . global-company-mode)
   )
 (use-package consult
+  :ensure t
   ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
          ("C-c M-x" . consult-mode-command)
@@ -287,6 +289,13 @@
 (use-package consult-flycheck
   :after flycheck
   )
+(use-package consult-snapfile
+  :load-path "~/code/consult-snapfile/emacs"
+  :after (consult websocket)
+  ;; Optional: bind to your preferred key
+  ;; :bind ("C-c s f" . consult-snapfile)
+  )
+
 (use-package cperl-mode
   :config
   (fset 'perl-mode 'cperl-mode)
@@ -786,7 +795,10 @@
 (use-package my-utils
   :load-path "my-utils/"
   :ensure nil  ;; Crucial: Tells use-package not to try downloading it from ELPA/MELPA
-  :functions (gemini-commit-generate)
+  :functions (gemini-commit-generate
+              my/agent-shell-fuzzy-insert-file
+              my/agent-shell-setup-fuzzy-completion
+              )
   :defines git-commit-mode-map
   :config
   ;; Magit integration: add to the commit transient
@@ -799,12 +811,21 @@
     (define-key git-commit-mode-map (kbd "C-c C-g") #'gemini-commit-generate)
     )
 
-  ;; Optional: Code to run after the file is loaded
-  (message "My custom utilities are ready!")
-
   :bind
   ("C-c t u" . my/unix-timestamp-to-org-date)
   ("C-x C-g" . my/consult-magit-status-only)
+
+  :after (agent-shell consult-snapfile)
+  :config
+  (keymap-set agent-shell-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
+  (keymap-set agent-shell-viewport-edit-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
+
+  :hook
+  (
+   (agent-shell-mode . 'my/agent-shell-setup-fuzzy-completion)
+   )
+  ;; Optional: Code to run after the file is loaded
+  (message "My custom utilities are ready!")
   )
 
 (use-package multiple-cursors
@@ -907,9 +928,8 @@
          ("C-c n f" . org-roam-node-find)
          ("C-c n i" . org-roam-node-insert)
          )
-  :functions (org-roam-db-autosync-enable)
   :config
-  (org-roam-db-autosync-enable)
+  (org-roam-db-autosync-mode)
   )
 
 ;; (use-package org-gcal)
@@ -1131,11 +1151,14 @@
   (keymap-set vertico-map "M-TAB" #'minibuffer-complete)
 
   ;; Option 2: Replace `vertico-insert' to enable TAB prefix expansion.
-  (keymap-set vertico-map "TAB" #'minibuffer-complete)
+  ;; (keymap-set vertico-map "TAB" #'minibuffer-complete)
   )
 (use-package vlf-setup
   :custom
   (vlf-application 'dont-ask)
+  )
+(use-package websocket
+  :ensure t
   )
 (use-package which-key
   )
