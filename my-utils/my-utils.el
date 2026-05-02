@@ -194,6 +194,9 @@ The minibuffer shows no extra `#' separator because this command binds
 
 When registered in `embark-multitarget-actions', Embark \\='act-all passes a
 list of targets; each is inserted without another minibuffer prompt.
+If point is immediately after a lone `\\=@' (typed before acting or left by
+canceling this command), that character is removed before the first insert so
+you do not get `@@'.
 
 On cancel, inserts bare @ for manual typing."
   (interactive "P")
@@ -201,11 +204,20 @@ On cancel, inserts bare @ for manual typing."
    ;; Embark `embark-act-all' with this command on `embark-multitarget-actions':
    ;; non-interactive call with (STRING ...) candidates.
    ((and arg (listp arg) (stringp (car arg)))
-    (dolist (path arg)
-      (my/agent-shell--insert-one-agent-path (my/agent-shell--normalize-agent-path path))))
+    (let ((first-non-empty t))
+      (dolist (path arg)
+        (let ((norm (my/agent-shell--normalize-agent-path path)))
+          (unless (string-empty-p norm)
+            (when first-non-empty
+              (when (and (> (point) (point-min)) (eq (char-before) ?@))
+                (delete-char -1))
+              (setq first-non-empty nil))
+            (my/agent-shell--insert-one-agent-path norm)))))
+    )
    ((not (fboundp 'consult-snapfile-read))
     (self-insert-command 1 ?@)
-    (completion-at-point))
+    (completion-at-point)
+    )
    (t
     (let* ((root (expand-file-name (consult-snapfile-project-root)))
            (default-directory root)
@@ -234,7 +246,9 @@ On cancel, inserts bare @ for manual typing."
       (if selected
           (my/agent-shell--insert-one-agent-path
            (my/agent-shell--normalize-agent-path selected))
-        (insert "@")))))
+        (insert "@")))
+    )
+   )
   )
 
 (with-eval-after-load 'embark
