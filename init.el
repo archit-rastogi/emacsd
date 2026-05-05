@@ -294,6 +294,9 @@
   :after (consult websocket)
   ;; Optional: bind to your preferred key
   ;; :bind ("C-c s f" . consult-snapfile)
+
+  :config
+  (setq consult-snapfile-max-results 10000)
   )
 
 (use-package cperl-mode
