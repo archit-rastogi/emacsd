@@ -30,7 +30,7 @@
     '((sequence "TODO" "WIP" "|" "DONE(d)" "DELEGATED(d)")
       (sequence "NOT STARTED" "IN PROGRESS(!)" "|" "PASSED(p!)" "FAILED(f@)" "BLOCKED(b@)")
       (sequence "|" "INVALID(i@)")
-      (sequence "|" "INVALID(i@)" "IDEA(I)" "GOAL(G)" "OUTCOME(O)" "INSIGHT(S)" "REFERENCE(R)" "THOUGHT(T)")
+      (sequence "IDEA(I)" "GOAL(G)" "OUTCOME(O)" "INSIGHT(S)" "REFERENCE(R)" "THOUGHT(T)" "|" "ACHIEVED(A)" "DISCARDED(D)")
       ;; IDEA  -- usually has an application
       ;; THOUGHT is open ended, it may crap, useful, may need refinement. It could lead to some IDEA
       ;; OUTCOME -- a measurable end result
