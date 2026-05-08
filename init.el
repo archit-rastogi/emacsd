@@ -757,12 +757,11 @@
   (auto-revert-buffer-list-filter
    'magit-auto-revert-repository-buffer-p)
   )
-(use-package magit-gh
-    :ensure t
-    :after magit
-    :init
-    (setq magit-gh-key ";")
-    )
+
+(use-package forge
+  :after magit
+  )
+
 (use-package marginalia
   :ensure nil
   :after vertico
