@@ -30,6 +30,14 @@
     '((sequence "TODO" "WIP" "|" "DONE(d)" "DELEGATED(d)")
       (sequence "NOT STARTED" "IN PROGRESS(!)" "|" "PASSED(p!)" "FAILED(f@)" "BLOCKED(b@)")
       (sequence "|" "INVALID(i@)")
+      (sequence "|" "INVALID(i@)" "IDEA(I)" "GOAL(G)" "OUTCOME(O)" "INSIGHT(S)" "REFERENCE(R)" "THOUGHT(T)")
+      ;; IDEA  -- usually has an application
+      ;; THOUGHT is open ended, it may crap, useful, may need refinement. It could lead to some IDEA
+      ;; OUTCOME -- a measurable end result
+      ;; INSIGHT -- adds another dinmension, brings color or interpretation to a subject
+      ;; REFERENCE -- link artifacts like a conversation, web link, etc.
+      ;; GOAL -- can be a project or an IDEA that needs to be implemented.
+      ;;     A goal subsumes multiple tasks, ideas, outcomes, insights and references.
       )
     )
    (org-todo-keyword-faces
@@ -40,13 +48,13 @@
       ("IN PROGRESS" . "khaki2")
       )
     )
-   
+
    ;; capture time stamps when TODO state changes
    (org-log-done 'time)
    ;; setting prioirty to numerals, each corresponding to P0, P1 and P2
-   (org-highest-priority ?0)
-   (org-lowest-priority ?2)
-   (org-default-priority ?0)
+   (org-highest-priority 0)
+   (org-lowest-priority 2)
+   (org-default-priority 0)
    (org-clock-idle-time 10)
    (org-log-into-drawer t)
    (org-hierarchical-todo-statistics nil)
