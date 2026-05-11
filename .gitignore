@@ -2,7 +2,6 @@
 /.agent-shell/
 workspace/
 .cache
-
 .DS_Store
 .ai.code.files/
 .ai.code.prompt.org
@@ -32,3 +31,4 @@ tramp
 tramp-autosave/
 transient/
 var/
+.emacs-custom.el
