@@ -271,7 +271,7 @@
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; "C-+"
+  ;; (setq consult-narrow-key "C-+") ;; "C-+"
 
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
