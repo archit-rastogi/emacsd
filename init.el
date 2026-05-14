@@ -291,6 +291,7 @@
   )
 (use-package consult-snapfile
   :load-path "~/code/consult-snapfile/emacs"
+  :demand t
   :after (consult websocket)
   ;; Optional: bind to your preferred key
   ;; :bind ("C-c s f" . consult-snapfile)
@@ -796,12 +797,23 @@
 
 (use-package my-utils
   :load-path "my-utils/"
+  :demand t
   :ensure nil  ;; Crucial: Tells use-package not to try downloading it from ELPA/MELPA
   :functions (gemini-commit-generate
               my/agent-shell-fuzzy-insert-file
               my/agent-shell-setup-fuzzy-completion
               )
   :defines git-commit-mode-map
+
+  :bind
+  ("C-c t u" . my/unix-timestamp-to-org-date)
+  ("C-x C-g" . my/consult-magit-status-only)
+
+  :hook
+  (
+   (agent-shell-mode . my/agent-shell-setup-fuzzy-completion)
+   )
+
   :config
   ;; Magit integration: add to the commit transient
   (with-eval-after-load 'magit
@@ -813,20 +825,10 @@
     (define-key git-commit-mode-map (kbd "C-c C-g") #'gemini-commit-generate)
     )
 
-  :bind
-  ("C-c t u" . my/unix-timestamp-to-org-date)
-  ("C-x C-g" . my/consult-magit-status-only)
-
-  :after (agent-shell consult-snapfile)
-  :config
-  (keymap-set agent-shell-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
-  (keymap-set agent-shell-viewport-edit-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
-
-  :hook
-  (
-   (agent-shell-mode . 'my/agent-shell-setup-fuzzy-completion)
-   )
-  ;; Optional: Code to run after the file is loaded
+  (with-eval-after-load 'agent-shell
+    (keymap-set agent-shell-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
+    (keymap-set agent-shell-viewport-edit-mode-map "@" #'my/agent-shell-fuzzy-insert-file)
+  )
   (message "My custom utilities are ready!")
   )
 
@@ -891,6 +893,12 @@
       "w" "Work Unstaged"
       entry
       (file "inbox/work_unstaged.org")
+      "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a"
+      )
+     (
+      "s" "Stand Up"
+      entry
+      (file "inbox/work_standup.org")
       "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i\n%a"
       )
      (
