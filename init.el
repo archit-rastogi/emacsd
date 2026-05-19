@@ -53,7 +53,6 @@
 (set-face-attribute 'default nil :height 150)
 
 (use-package orgalist-mode
-  :ensure t
   )
 
 (use-package agent-shell
@@ -361,11 +360,6 @@
   ;; (elfeed-search-mode . elfeed-ai-mode)
   )
 (use-package emacs
-  :config
-  (when (memq window-system '(mac ns x))
-    (setq mac-command-modifier 'super)
-    )
-
   :custom
   ;; Support opening new minibuffers from inside existing minibuffers.
   (enable-recursive-minibuffers t)
@@ -389,12 +383,16 @@
   (before-save . delete-trailing-whitespace)
 
   :config
+  (when (memq window-system '(mac ns x))
+    (setq mac-command-modifier 'super)
+    )
   (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
         completion-ignore-case t)
   (global-display-line-numbers-mode 1)
   (electric-pair-mode 1)
   (put 'narrow-to-region 'disabled nil)
+  (setq shell-command-switch "-ic")
   )
 (use-package envrc
   :custom
