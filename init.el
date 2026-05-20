@@ -674,8 +674,31 @@
   (lsp-java-save-actions-organize-imports 't)
   ;; (lsp-semgrep-languages (remove "java" lsp-semgrep-languages))
 
+  (lsp-java-java-path
+     (expand-file-name "bin/java"
+                       (string-trim (shell-command-to-string "/usr/libexec/java_home -v 25"))))
   :config
   (add-hook 'java-mode-hook 'lsp-deferred)
+  ;; JDKs used for project compile / analysis (not the LS launcher JVM)
+  (setq lsp-java-configuration-runtimes
+   `[(:name "JavaSE-17"
+            :path ,(string-trim
+                   (shell-command-to-string "/usr/libexec/java_home -v 17")
+                   )
+            )
+     (:name "JavaSE-21"
+            :path ,(string-trim
+                   (shell-command-to-string "/usr/libexec/java_home -v 21")
+                   )
+            )
+     (:name "JavaSE-25"
+            :path ,(string-trim
+                   (shell-command-to-string "/usr/libexec/java_home -v 25")
+                   )
+            :default t
+            )
+     ]
+   )
   )
 (use-package lsp-mode
   :hook
