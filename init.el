@@ -28,7 +28,14 @@
 (add-to-list 'package-archives '("melpa" .  "http://melpa.org/packages/"))
 (add-to-list 'package-archives '("melpa-stable" .  "http://stable.melpa.org/packages/"))
 (add-to-list 'package-archives '("nongnu" .  "https://elpa.nongnu.org/nongnu/"))
+;; Allow ELPA to upgrade built-in packages (transient, seq, etc.) required
+;; by current Magit/Forge snapshots on Emacs 30+.
+(setq package-install-upgrade-built-in t)
 (package-initialize)
+
+(unless (package-installed-p 'compat)
+  (package-refresh-contents)
+  (package-install 'compat))
 
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
@@ -778,10 +785,6 @@
   (magit-refresh-status-buffer nil)
   (auto-revert-buffer-list-filter
    'magit-auto-revert-repository-buffer-p)
-  )
-
-(use-package forge
-  :after magit
   )
 
 (use-package marginalia
