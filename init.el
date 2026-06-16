@@ -679,7 +679,7 @@
   (lsp-java-format-settings-profile '"Default")
   (lsp-use-plists 't)
   (lsp-java-save-actions-organize-imports 't)
-  ;; (lsp-semgrep-languages (remove "java" lsp-semgrep-languages))
+  (lsp-semgrep-languages (remove "java" lsp-semgrep-languages))
 
   (lsp-java-java-path
      (expand-file-name "bin/java"
